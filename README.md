@@ -12,3 +12,6 @@ rewards are :
 * if the car is turning then reward = half the current speed (to prevent from turning too much)
 * if the car is making an half turn reward = - 45
 * if the car is going out of the track reward = - 150 and break the run/ cause respawn + AI training
+
+the state image is with perspective, you can tweak it in the 3D_map function in env.py
+I made some function to add some texture, light effects to be more realistic and challenging for the AI

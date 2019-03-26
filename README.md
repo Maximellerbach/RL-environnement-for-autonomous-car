@@ -6,6 +6,6 @@ in this environnement, a car (represented by a red point) is evolving, his goal 
 
 rewards are : 
 * if the car is going forward then reward = current speed
-* if the car is turning then reward = half the current speed
+* if the car is turning then reward = half the current speed (to prevent from turning too much)
 * if the car is making an half turn reward = - 45
 * if the car is going out of the track reward = - 150 and break the run/ cause respawn + AI training

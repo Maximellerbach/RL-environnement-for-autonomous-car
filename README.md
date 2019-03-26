@@ -1,6 +1,9 @@
 # RL-environnement-for-autonomous-car
 In this repo, I used some math and image manipulation skills to create my own reinforcement learning environnement for autonomous car 
 
+![training](/docs/training.JPG)
+![state](/docs/state.JPG)
+
 this environnement is simple: a race track with white borders, 
 in this environnement, a car (represented by a red point) is evolving, his goal is too survive as long as possible (so make as many laps as possible)
 

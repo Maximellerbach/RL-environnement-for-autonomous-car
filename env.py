@@ -5,7 +5,7 @@ import numpy as np
 import random
 from tqdm import tqdm
 
-
+import autolib
 
 class car():
 
@@ -14,7 +14,7 @@ class car():
         #bgr = cv2.resize(bgr, (int(bgr.shape[1]//1.5), int(bgr.shape[0]//1.5))) 
         self.envmap = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
 
-        self.spawn = 750, 750
+        self.spawn = 800, 720
         self.y, self.x = self.spawn
 
         self.texture = self.texture(bgr)
@@ -54,7 +54,7 @@ class car():
             for y in range(I1[0]-2, I1[1]+2):
 
                 if self.envmap[y][int(self.x)]>= 200 or self.envmap[y][int(self.x)+1]>= 200 or self.envmap[y][int(self.x)-1]>= 200:
-                    return False, True
+                    return True, True
 
             return False, True
             
@@ -95,7 +95,7 @@ class car():
             return -150
 
         elif self.angle != 0:
-            return self.speed*1/2
+            return self.speed
     
         else:
             return self.speed
@@ -135,7 +135,7 @@ class car():
     def get_view(self):
         
         if self.vector[0] == 0 :
-            angle = math.atan(self.vector[1]/0.01)
+            angle = math.atan(self.vector[1]/0.001)
         else:
             angle = math.atan(self.vector[1]/self.vector[0])
 
@@ -153,12 +153,11 @@ class car():
                 ori = -1
 
             if ori == -1 :
-                self.temp = rotated[int(self.y)-200:int(self.y)+200, int(self.x)-200:int(self.x)]
+                self.temp = rotated[int(self.y)-300:int(self.y)+300, int(self.x)-300:int(self.x)]
                 self.temp = cv2.flip(self.temp, ori)
 
             else :
-                self.temp = rotated[int(self.y)-200:int(self.y)+200, int(self.x):int(self.x)+200]
-            
+                self.temp = rotated[int(self.y)-300:int(self.y)+300, int(self.x):int(self.x)+300]
             
             self.temp = imutils.rotate_bound(self.temp, -90)
             
@@ -181,22 +180,26 @@ class car():
     def map_3D(self):
         h,w,ch = self.temp.shape
 
-        angle = 0.2
+        angle = 0.13
         coef = math.sin(angle)
         y = h
-        xmi = 175
-        xmx = 225
+        xmi = 220
+        xmx = 380
 
-        pts1 = np.float32([[0, 0],[0, y],[400, 0],[400, y]])
-        pts2 = np.float32([[xmi, 0],[0, coef*y],[xmx, 0],[400, coef*y]])
+        pts1 = np.float32([[0, 0],[0, y],[w, 0],[w, y]])
+        pts2 = np.float32([[xmi, 0],[0, coef*y],[xmx, 0],[w, coef*y]])
 
 
         M = cv2.getPerspectiveTransform(pts1,pts2)
 
         self.state = cv2.warpPerspective(self.temp,M,(w,h))
         
-        self.state = self.state[1:int(coef*200) , xmi:xmx]
-        #self.state = cv2.resize(self.state,(150,75))
+        self.state = self.state[1:int(coef*h) , xmi:xmx]
+
+        self.state = cv2.resize(self.state,(self.state.shape[1]//2,self.state.shape[0]))
+
+        self.state = self.state[:, 10:self.state.shape[1]-10]
+
 
         
     def texture(self, rgb_img):
@@ -219,22 +222,26 @@ class car():
 
         for x in range(len(rgb_img)):
             for y in range(len(rgb_img[x])):
-                if rgb_img[x][y][0]==255:
+                
+                if rgb_img[x][y][0]==255: #draw white lines with a bit of random for the color
+                    
                     val = random.randint(30,100)
                     new_img[x][y][0]=255-val
                     new_img[x][y][1]=255-val
                     new_img[x][y][2]=255-val
+                    
 
-                elif rgb_img[x][y][2]==170:
-                    val = random.randint(0,60)
-                    new_img[x][y][0]=10
-                    new_img[x][y][1]=170-val
-                    new_img[x][y][2]=170-val
+                elif rgb_img[x][y][2]==170: #draw yellow lines with a bit of random for the color
+
+                    val = random.randint(0,30)
+                    new_img[x][y][0]=30-val
+                    new_img[x][y][1]=210-val
+                    new_img[x][y][2]=210-val
 
         ##########
 
-        brght_img = self.rand_brght(new_img, b=50, mid = 50) # add some random brightness/darkness to map
-        spot_img = self.rand_light(brght_img, 100,300, 3, color=40)
+        brght_img = self.rand_brght(new_img, b=100, mid = 100) # add some random brightness/darkness to map
+        spot_img = self.rand_light(brght_img, 100,300, 8, color=40)
 
         return spot_img
 
@@ -276,23 +283,28 @@ class car():
 
     def rand_light(self,img, a, b, nb, color=100):
         for _ in tqdm(range(nb)):
-            cx = random.randint(500,img.shape[1]-500)
-            cy = random.randint(500,img.shape[0]-500)
+            radius = random.randint(a,b)
 
-            img = self.spot_light(img,cx,cy, radius = random.randint(a,b), color=color)
+            cx = random.randint(300+radius,img.shape[1]-300-radius) #set max-min values for x
+            cy = random.randint(400+radius,img.shape[0]-400-radius) #set max-min values for y
+
+            img = self.spot_light(img,cx,cy, radius = radius , color=color)
 
         return img
 
     def spot_light(self, img, cx,cy, radius = 50, color = 200): # color = orange 
         
-        radius= radius**2
+        minix = cx-radius
+        miniy = cy-radius
+        sqradius= radius**2
+        
 
-        for x in range(len(img)):
-            for y in range(len(img[0])):
+        for x in range(minix,minix+2*radius-1):
+            for y in range(miniy,miniy+2*radius-1):
                 dsqr = (cx-x)**2+(cy-y)**2
-                if dsqr<radius:
-                    dif = radius-dsqr
-                    val = int(dif*color/radius)
+                if dsqr<sqradius:
+                    dif = sqradius-dsqr
+                    val = int(dif*color/sqradius)
 
                     lim = 255 - val
                     img[x][y][img[x][y] > lim] = 255

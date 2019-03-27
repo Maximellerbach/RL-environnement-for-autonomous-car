@@ -2,14 +2,15 @@ import math
 import random
 from collections import deque
 
+import cv2
 import numpy as np
 from keras.activations import relu, tanh
-from keras.layers import Convolution2D, Dense, Dropout, Flatten, MaxPooling2D
+from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from keras.models import Sequential, load_model, save_model
 from keras.optimizers import Adam
 
-import env
 import autolib
+import env
 
 val = []
 
@@ -20,6 +21,7 @@ def log(score):
     valog_arr = np.array(val)
     np.save('log.npy',valog_arr)
 
+inv = [2,1,0]
 
 GAMMA = 0.99
 
@@ -41,17 +43,14 @@ class Solver():
 
         self.model = Sequential()
 
-        self.model.add(Convolution2D(16, (3,3), activation = "relu", padding = "same", input_shape=(observation_space)))
+        self.model.add(Conv2D(32, (5,5), activation = "relu", padding = "same", input_shape=(observation_space)))
         self.model.add(Dropout(0.1))
         self.model.add(MaxPooling2D())
 
-        self.model.add(Convolution2D(16, (3,3), activation = "relu", padding = "same"))
-        self.model.add(MaxPooling2D())
-        
-        self.model.add(Convolution2D(16, (3,3), activation = "relu", padding = "same"))
+        self.model.add(Conv2D(32, (5,5), activation = "relu", padding = "same"))
+        self.model.add(Dropout(0.1))
         self.model.add(MaxPooling2D())
 
-        
 
         self.model.add(Flatten())
         self.model.add(Dense(32, activation="relu"))
@@ -60,7 +59,7 @@ class Solver():
         self.model.add(Dense(self.action_space, activation="linear"))
         self.model.compile(loss="mse", optimizer=Adam())
 
-        #self.model.summary()
+        self.model.summary()
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
@@ -79,6 +78,8 @@ class Solver():
 
         for state, action, reward, state_next, done in batch:
             q_update = reward
+            if done == False:
+                q_update = (reward + GAMMA * np.amax(self.model.predict(state_next)[0]))
 
             q_values = self.model.predict(state)
             q_values[0][action] = q_update
@@ -100,7 +101,7 @@ def autonomousCar():
     print(observation_space)
     action_space = 3
     dqn_solver = Solver(observation_space, action_space)
-    #dqn_solver.model = load_model('model\\dqn_solver1_119738.h5')
+    #dqn_solver.model = load_model('model\\dqn_solver2_11546.0.h5')
     
     best = 4000
     run = 0
@@ -117,13 +118,16 @@ def autonomousCar():
             state_next, reward, done = car_obj.step(action)
 
             tot_reward+=reward 
+            
 
             dqn_solver.remember(state, action, reward, state_next, done)
+
             state = state_next
 
             if done == True:
                 print("Run: " + str(run) + ", score: " + str(tot_reward))
                 
+                # reset env
                 car_obj.y, car_obj.x = car_obj.spawn
                 car_obj.vector = np.array([0, 1])
                 car_obj.angle = 0

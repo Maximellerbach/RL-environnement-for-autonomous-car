@@ -95,7 +95,7 @@ class car():
             return -150
 
         elif self.angle != 0:
-            return self.speed
+            return self.speed/2
     
         else:
             return self.speed

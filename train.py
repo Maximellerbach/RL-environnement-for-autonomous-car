@@ -29,7 +29,7 @@ MEMORY_SIZE = 1000000
 BATCH_SIZE = 128
 
 EXPLORATION_MAX = 0.1
-EXPLORATION_MIN = 0.02
+EXPLORATION_MIN = 0.005
 EXPLORATION_DECAY = 0.9
 
 
@@ -43,18 +43,19 @@ class Solver():
 
         self.model = Sequential()
 
-        self.model.add(Conv2D(32, (5,5), activation = "relu", padding = "same", input_shape=(observation_space)))
+        self.model.add(Conv2D(32, (3,3), activation = "relu", padding = "same", input_shape=(observation_space)))
         self.model.add(Dropout(0.1))
         self.model.add(MaxPooling2D())
 
-        self.model.add(Conv2D(32, (5,5), activation = "relu", padding = "same"))
-        self.model.add(Dropout(0.1))
+        self.model.add(Conv2D(32, (3,3), activation = "relu", padding = "same"))
         self.model.add(MaxPooling2D())
 
+        self.model.add(Conv2D(32, (3,3), activation = "relu", padding = "same"))
+        self.model.add(MaxPooling2D())
 
         self.model.add(Flatten())
-        self.model.add(Dense(32, activation="relu"))
-        self.model.add(Dense(32, activation="relu"))
+        self.model.add(Dense(16, activation="relu"))
+        self.model.add(Dense(16, activation="relu"))
 
         self.model.add(Dense(self.action_space, activation="linear"))
         self.model.compile(loss="mse", optimizer=Adam())

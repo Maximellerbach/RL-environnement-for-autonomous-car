@@ -4,15 +4,12 @@ from collections import deque
 
 import cv2
 import numpy as np
-from keras.activations import relu, tanh
+from keras.activations import relu
 from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from keras.models import Sequential, load_model, save_model
 from keras.optimizers import Adam
 
-import autolib
 import env
-
-val = []
 
 def log(score):
 
@@ -129,11 +126,7 @@ def autonomousCar():
                 print("Run: " + str(run) + ", score: " + str(tot_reward))
                 
                 # reset env
-                car_obj.y, car_obj.x = car_obj.spawn
-                car_obj.vector = np.array([0, 1])
-                car_obj.angle = 0
-                car_obj.visu = np.copy(car_obj.resized)
-
+                car_obj.reset()
                 dqn_solver.experience_replay()
 
                 break

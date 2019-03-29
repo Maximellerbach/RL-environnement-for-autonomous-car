@@ -77,7 +77,6 @@ class car():
 
         if self.totangle>=180 and self.dist<200 or self.totangle<=-180 and self.dist<200:
 
-            print(self.dist, self.totangle)
             self.totangle = 0
             self.dist = 0
             return True, False
@@ -88,7 +87,6 @@ class car():
     def reward(self, done, half):        
 
         if half == False:
-            print('ohoh half')
             return -math.pi*30/2
 
         elif done == True:
@@ -254,8 +252,6 @@ class car():
             sign = False
         else:
             sign = True
-
-        print(rand, sign)
 
         img = self.change_brightness(img, value=rand, sign= sign)
 

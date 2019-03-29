@@ -328,6 +328,13 @@ class car():
         self.get_view()
         
         return self.state, reward, done
+       
+    
+    def reset(self):
+        self.y, self.x = self.spawn
+        self.vector = np.array([0, 1])
+        self.angle = 0
+        self.visu = np.copy(self.resized)
         
 
         

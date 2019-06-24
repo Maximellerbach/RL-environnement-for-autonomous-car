@@ -22,12 +22,14 @@ inv = [2,1,0]
 
 GAMMA = 0.99
 
-MEMORY_SIZE = 1000000
+MEMORY_SIZE = 10000
 BATCH_SIZE = 128
 
 EXPLORATION_MAX = 0.1
-EXPLORATION_MIN = 0.005
-EXPLORATION_DECAY = 0.9
+EXPLORATION_MIN = 0.05
+EXPLORATION_DECAY = 0.1
+
+val = []
 
 
 class Solver():
@@ -40,21 +42,27 @@ class Solver():
 
         self.model = Sequential()
 
-        self.model.add(Conv2D(32, (3,3), activation = "relu", padding = "same", input_shape=(observation_space)))
+        self.model.add(Conv2D(16, (3,3), activation = "relu", padding = "same", input_shape=(observation_space)))
+        self.model.add(MaxPooling2D())
         self.model.add(Dropout(0.1))
-        self.model.add(MaxPooling2D())
 
-        self.model.add(Conv2D(32, (3,3), activation = "relu", padding = "same"))
+        self.model.add(Conv2D(8, (3,3), activation = "relu", padding = "same"))
         self.model.add(MaxPooling2D())
+        self.model.add(Dropout(0.1))
 
-        self.model.add(Conv2D(32, (3,3), activation = "relu", padding = "same"))
+        self.model.add(Conv2D(4, (3,3), activation = "relu", padding = "same"))
         self.model.add(MaxPooling2D())
+        self.model.add(Dropout(0.1))
+
+        self.model.add(Conv2D(2, (3,3), activation = "relu", padding = "same"))
+        self.model.add(MaxPooling2D())
+        self.model.add(Dropout(0.1))
 
         self.model.add(Flatten())
-        self.model.add(Dense(16, activation="relu"))
-        self.model.add(Dense(16, activation="relu"))
+        self.model.add(Dense(32, use_bias=None, activation="relu"))
+        self.model.add(Dense(16, use_bias=None, activation="relu"))
 
-        self.model.add(Dense(self.action_space, activation="linear"))
+        self.model.add(Dense(self.action_space, use_bias=None, activation="linear"))
         self.model.compile(loss="mse", optimizer=Adam())
 
         self.model.summary()
@@ -82,7 +90,7 @@ class Solver():
             q_values = self.model.predict(state)
             q_values[0][action] = q_update
 
-            self.model.fit(state, q_values, verbose=0, batch_size=16)
+            self.model.fit(state, q_values, verbose=0, batch_size=BATCH_SIZE)
 
         self.exploration_rate *= EXPLORATION_DECAY
         self.exploration_rate = max(EXPLORATION_MIN, self.exploration_rate)
@@ -99,7 +107,7 @@ def autonomousCar():
     print(observation_space)
     action_space = 3
     dqn_solver = Solver(observation_space, action_space)
-    #dqn_solver.model = load_model('model\\dqn_solver2_11546.0.h5')
+    #dqn_solver.model = load_model('model\\dqn_solver2_12074.0.h5')
     
     best = 4000
     run = 0

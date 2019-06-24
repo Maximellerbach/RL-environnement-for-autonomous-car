@@ -5,7 +5,6 @@ import numpy as np
 import random
 from tqdm import tqdm
 
-import autolib
 
 class car():
 
@@ -14,7 +13,7 @@ class car():
         #bgr = cv2.resize(bgr, (int(bgr.shape[1]//1.5), int(bgr.shape[0]//1.5))) 
         self.envmap = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
 
-        self.spawn = 800, 720
+        self.spawn = 1000, 720
         self.y, self.x = self.spawn
 
         self.texture = self.texture(bgr)
@@ -195,8 +194,9 @@ class car():
         self.state = self.state[1:int(coef*h) , xmi:xmx]
 
         self.state = cv2.resize(self.state,(self.state.shape[1]//2,self.state.shape[0]))
+        self.state = self.state/255
+        #self.state = self.state[:, 10:self.state.shape[1]-10]
 
-        self.state = self.state[:, 10:self.state.shape[1]-10]
 
 
         
